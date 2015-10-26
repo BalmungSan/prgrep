@@ -1,5 +1,5 @@
 	      section .data
-hola_palabra: db    "Hello World",10
+hola_palabra: db    "Hello World",64,10,13
 hola_tamano:  equ   $-hola_palabra
 
 	      section .text
