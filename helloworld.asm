@@ -3,7 +3,7 @@ hola_palabra: db    "Hello World",64,10,13
 hola_tamano:  equ   $-hola_palabra
 
 	      section .text
-	      global _start
+	      global _start; Define variables que pueden ser accedidas desde C
 
 _start:
 	      mov   eax,4
