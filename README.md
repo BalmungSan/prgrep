@@ -1,5 +1,5 @@
 # prgrep
-Parallel Grep. Using string search algorithm Boyer-Moore
+Parallel Grep. Using Boyer-Moore's string search algorithm
 
 Authors:
 Carlos Andres Sanchez Alzate ()
