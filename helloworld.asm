@@ -6,7 +6,7 @@ section .text
 ;;  Define variables que pueden ser accedidas desde C
 global _start
 
-sart:
+_start:
 mov   eax,4 	; Call system write id 4
 mov   ebx,1 	; Input file = screen
 mov   ecx,hola_palabra ; Save the string

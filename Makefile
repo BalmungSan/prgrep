@@ -6,7 +6,8 @@ hello: helloworld.asm
 read: fileRead.asm
 	nasm -f elf64 $<
 	ld -o $@ fileRead.o
-	./read
+	./read hello.txt
+	./read hello.txt
 
 clean: 
 	rm -f hello
