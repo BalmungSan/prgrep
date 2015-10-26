@@ -1,18 +1,19 @@
-	      section .data
+section .data
 hola_palabra: db    "Hello World",64,10,13
 hola_tamano:  equ   $-hola_palabra
 
-	      section .text
-	      global _start; Define variables que pueden ser accedidas desde C
+section .text
+;;  Define variables que pueden ser accedidas desde C
+global _start
 
-_start:
-	      mov   eax,4
-	      mov   ebx,1
-	      mov   ecx,hola_palabra
-	      mov   edx,hola_tamano
-	      int   80h
+sart:
+mov   eax,4 	; Call system write id 4
+mov   ebx,1 	; Input file = screen
+mov   ecx,hola_palabra ; Save the string
+mov   edx,hola_tamano ; save the string size
+int   80h 	; Kernel interruption
 
 				    ;Final del programa
-	      mov   eax,1
-	      mov   ebx,0
-	      int   80h
+mov   eax,1	    ; Call system exit
+mov   ebx,0	    ; Exit code 0
+int   80h		    ; Kernel interruption
