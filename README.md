@@ -2,7 +2,7 @@
 Parallel Grep. Using Boyer-Moore's string search algorithm
 
 Authors:
-Carlos Andres Sanchez Alzate ()
+Carlos Andres Sanchez Alzate (201310087010)
 Juan SebastiánZapata Tamayo (201427500010)
 Luis Miguel Mejía Suárez (201410033010)
 
