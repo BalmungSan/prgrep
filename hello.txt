@@ -1,0 +1,8 @@
+AZUCAR
+Primer ejemplo @
+numeral #
+pesos $ 
+mod %
+slash /
+equal =
+unicode ñ ö á É 
