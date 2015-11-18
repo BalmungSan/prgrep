@@ -1,6 +1,10 @@
-Boyer-Moore: Boyer-Moore.o
-	mv a.out ./Boyer-Moore
-	./Boyer-Moore "Hello"
+prgrep: prgrep.o
+	mv a.out ./prgrep
+	./prgrep "Hello" "He"
+
+bm: BoyerMoore.java
+	javac $<
+	java BoyerMoore "jhjhjahshelllskHellolosjsme" "Hello"
 
 hello: helloworld.o
 	mv a.out ./hello
@@ -15,7 +19,8 @@ read: fileRead.o
 	ld -m elf_i386 -s $@
 
 clean: 
-	rm -f Boyer-Moore
+	rm -f prgrep
 	rm -f hello
 	rm -f read
 	rm -rf *.o
+	rm -rf *.class
