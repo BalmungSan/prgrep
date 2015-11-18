@@ -5,126 +5,126 @@ import java.util.*;
  */
 public class StringMatchingBM {
 
-	public static final int ALPHABET_SIZE = 256;
-	private int[] bmBC;
-	private int[] bmGs;
-	public int comparisons;
-	
-	public void preBmBc(char[] x) {
-		
-		int m = x.length;
-		bmBC = new int[ALPHABET_SIZE];
+  public static final int ALPHABET_SIZE = 256;
+  private int[] bmBC;
+  private int[] bmGs;
+  public int comparisons;
 
-		Arrays.fill(bmBC, m);
+  public void preBmBc(char[] x) {
 
-		for (int i = 0; i < m - 1; i++) {
-			bmBC[x[i]] = m - i - 1;
-		}
-	}
+    int m = x.length;
+    bmBC = new int[ALPHABET_SIZE];
 
-	public int[] suffixes(char[] x) {
-		
-		int m = x.length;
-		int suff[] = new int[m];
-		int g = m - 1;
-		int f = m - 1;
+    Arrays.fill(bmBC, m);
 
-		suff[m - 1] = m;
+    for (int i = 0; i < m - 1; i++) {
+      bmBC[x[i]] = m - i - 1;
+    }
+  }
 
-		for (int i = m - 2; i >= 0; --i) {
-			if (i > g && (i + m - 1 - f) < m && suff[i + m - 1 - f] < i - g) {
-				suff[i] = suff[i + m - 1 - f];
-			} else {
-				//if (i < g) {
-				g = i;
-				//}
-				f = g;
+  public int[] suffixes(char[] x) {
 
-				while (g >= 0 && x[g] == x[g + m - 1 - f]) {
-					--g;
-				}
+    int m = x.length;
+    int suff[] = new int[m];
+    int g = m - 1;
+    int f = m - 1;
 
-				suff[i] = f - g;
+    suff[m - 1] = m;
 
-			}
-		}
+    for (int i = m - 2; i >= 0; --i) {
+      if (i > g && (i + m - 1 - f) < m && suff[i + m - 1 - f] < i - g) {
+        suff[i] = suff[i + m - 1 - f];
+      } else {
+        //if (i < g) {
+        g = i;
+        //}
+        f = g;
 
-		return suff;
-	}
+        while (g >= 0 && x[g] == x[g + m - 1 - f]) {
+          --g;
+        }
 
-	public void preBmGs(char[] x) {
-		
-		int m = x.length;
-		bmGs = new int[m];
+        suff[i] = f - g;
 
-		int suff[] = suffixes(x);
+      }
+    }
 
-		Arrays.fill(bmGs, m);
+    return suff;
+  }
 
-		int j = 0;
+  public void preBmGs(char[] x) {
 
-		for (int i = m - 1; i >= -1; --i) {
-			if (i == -1 || suff[i] == i + 1) {
-				for (; j < m - 1 - i; ++j) {
-					if (bmGs[j] == m) {
-						bmGs[j] = m - 1 - i;
-					}
-				}
-			}
-		}
+    int m = x.length;
+    bmGs = new int[m];
 
-		for (int i = 0; i < m - 1; i++) {
-			bmGs[m - 1 - suff[i]] = m - 1 - i;
-		}
-		
+    int suff[] = suffixes(x);
 
-	}
+    Arrays.fill(bmGs, m);
 
-	
-	public List<Integer> search(String text, String pattern) {
+    int j = 0;
 
-		char[] y = text.toCharArray();
-		char[] x = pattern.toCharArray();
-		int n = y.length; // string length
-		int m = x.length; // pattern length
-		List<Integer> resultado = new ArrayList<Integer>();
+    for (int i = m - 1; i >= -1; --i) {
+      if (i == -1 || suff[i] == i + 1) {
+        for (; j < m - 1 - i; ++j) {
+          if (bmGs[j] == m) {
+            bmGs[j] = m - 1 - i;
+          }
+        }
+      }
+    }
 
-		int j = 0;
-		int i = 0;
-		comparisons = 0;
+    for (int i = 0; i < m - 1; i++) {
+      bmGs[m - 1 - suff[i]] = m - 1 - i;
+    }
 
-		/* Precompute */
-		preBmBc(x);
-		preBmGs(x);	
 
-		/* Searching */
-		while (j <= n - m) {
-			for (i = m - 1; i >= 0 && x[i] == y[i + j]; i--) {
-				comparisons++;
-			}
+  }
 
-			if (i < 0) {
-				resultado.add(j);
-				j += bmGs[0];
-			} else {
-				j += Math.max(bmGs[i], bmBC[y[i + j]] - m + 1 + i);				
-			}
 
-		}
+  public List<Integer> search(String text, String pattern) {
 
-		return resultado;
-	}
+    char[] y = text.toCharArray();
+    char[] x = pattern.toCharArray();
+    int n = y.length; // string length
+    int m = x.length; // pattern length
+    List<Integer> resultado = new ArrayList<Integer>();
 
-	public static void main(String args[]) {
+    int j = 0;
+    int i = 0;
+    comparisons = 0;
 
-		String text = "gcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagag";
-		String pattern = "gcagagagtatacagtacggcagagaggcagag";
+    /* Precompute */
+    preBmBc(x);
+    preBmGs(x);
 
-		StringMatchingBM bm = new StringMatchingBM();
-		
-		// Expected: [20, 67, 114, 161, 208, 255, 302, 349, 396, 443, 490, 537]
-		System.out.printf("%s%n",bm.search(text, pattern));
+    /* Searching */
+    while (j <= n - m) {
+      for (i = m - 1; i >= 0 && x[i] == y[i + j]; i--) {
+        comparisons++;
+      }
 
-	}
+      if (i < 0) {
+        resultado.add(j);
+        j += bmGs[0];
+      } else {
+        j += Math.max(bmGs[i], bmBC[y[i + j]] - m + 1 + i);
+      }
+
+    }
+
+    return resultado;
+  }
+
+  public static void main(String args[]) {
+
+    String text = "gcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagaggcagagaggcatcgcagagagcagagagtatacagtacggcagagag";
+    String pattern = "gcagagagtatacagtacggcagagaggcagag";
+
+    StringMatchingBM bm = new StringMatchingBM();
+
+    // Expected: [20, 67, 114, 161, 208, 255, 302, 349, 396, 443, 490, 537]
+    System.out.printf("%s%n",bm.search(text, pattern));
+
+  }
 
 }
