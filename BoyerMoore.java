@@ -18,58 +18,6 @@ public class BoyerMoore {
     for (int i = 0; i < m - 1; i++) bmBC[x[i]] = m - i - 1;
   }
 
-  public int[] suffixes(char[] x) {
-    int m = x.length;
-    int suff[] = new int[m];
-    int g = m - 1;
-    int f = m - 1;
-
-    suff[m - 1] = m;
-
-    for (int i = m - 2; i >= 0; --i) {
-      if (i > g && (i + m - 1 - f) < m && suff[i + m - 1 - f] < i - g) {
-        suff[i] = suff[i + m - 1 - f];
-      } else {
-        g = i;
-        f = g;
-
-        //
-        while (g >= 0 && x[g] == x[g + m - 1 - f]) --g;
-
-        suff[i] = f - g;
-      }
-    }
-
-    return suff;
-  }
-
-  public void preBmGs(char[] x) {
-    int m = x.length;
-    bmGs = new int[m];
-
-    int suff[] = suffixes(x);
-
-    Arrays.fill(bmGs, m);
-
-    int j = 0;
-
-    for (int i = m - 1; i >= -1; --i) {
-      if (i == -1 || suff[i] == i + 1) {
-        for (; j < m - 1 - i; ++j) {
-          if (bmGs[j] == m) {
-            bmGs[j] = m - 1 - i;
-          }
-        }
-      }
-    }
-
-    //
-    for (int i = 0; i < m - 1; i++) {
-      bmGs[m - 1 - suff[i]] = m - 1 - i;
-    }
-  }
-
-
   public boolean search(String text, String pattern) {
     char[] y = text.toCharArray();
     char[] x = pattern.toCharArray();
@@ -79,23 +27,19 @@ public class BoyerMoore {
 
     int j = 0;
     int i = 0;
+    int last = m - 1;
 
     /* Precompute */
     preBmBc(x);
-    preBmGs(x);
 
-    System.out.println("Searching; BMBC " + Arrays.toString(bmBC)
-                       + "\nBMGS " + Arrays.toString(bmGs));
+    System.out.println("n=" + n + " m=" + m + " last=" + last);
+
     /* Searching */
     while (j <= n - m && !result) {
-      for (i = m - 1; i >= 0 && x[i] == y[i + j]; i--);
+      for (i = last; x[i] == y[i + j]; i--)
+        if (i == 0) result = true;
 
-      if (i < 0) {
-        result = true;
-      } else {
-        j += Math.max(bmGs[i], bmBC[y[i + j]] - m + 1 + i);
-      }
-
+      j += bmBC[y[j+last]];
     }
 
     return result;

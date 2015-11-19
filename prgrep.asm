@@ -22,6 +22,7 @@ section .text
   ;Boyer Moore string matching algorithm
   global search
   search: 
+    ;prepare variables ------------------------------------
     ;create the stack frame
     push ebp
     mov ebp, esp
@@ -43,9 +44,9 @@ section .text
     mov ecx, [ebp+12]       ;get pattern from the stack
     call getlen             ;get the length of the string
     mov dword [ebp-20], edx ;edx = pattern.length 
+    ;------------------------------------------------------
 
     ;Precompute -------------------------------------------
-    ;prebmbc --------------------------
     ;[edp-24] = int[] bmbc = new int[256]
     mov ebx, 256      ;256 elements
     shl ebx, 1        ;double word
@@ -57,7 +58,7 @@ section .text
     xor ecx, ecx     ;clear the iterator -> ecx = 0
     loopbmbcfill:
       mov eax, [ebp-20]
-      mov [edi + ecx * 2], eax ;bmbc[ecx] = m
+      mov [edi + ecx*2], eax ;bmbc[ecx] = m
       inc ecx                       ;ecx++
       cmp ecx, 256                  ;if ecx != 256 ...
       jne loopbmbcfill              ;... continue loop
@@ -70,34 +71,19 @@ section .text
     mov [ebp-36], eax  ;[ebp-36] = int aux = m -1
     forbmbc:
       ;eax = text[ecx]
-      mov eax, [esi + ecx * 2]      
+      mov eax, [esi + ecx]      
 
       ;ebx = m-i-1
-      mov ebx, eax ;ebx = m - 1
-      sub ebx, ecx ;ebx = ebx - i
+      mov ebx, [ebp-36] ;ebx = m - 1
+      sub ebx, ecx      ;ebx = ebx - i
 
       ;bmbc[eax] = ebx
-      mov [edi + eax * 2], ebx      
+      mov [edi + eax*2], ebx      
 
       inc ecx           ;ecx++
       cmp ecx, [ebp-36] ;if ecx == m - 1 ...
       jne loopbmbcfill  ;... continue loop
-    ;----------------------------------
-
-    ;prebmgs --------------------------
-    ;[ebp-28] = int[] suff = new int [m]
-    mov ebx, [ebp-20] ;m elements
-    shl ebx, 1        ;double word
-    sub ecx, ebx      ;ecx points to the array
-    mov [ebp-28], ecx ;save the pointer in the stack 
-
-    ;[edp-32] = int[] bmgs =new int [m]
-    mov ebx, [ebp-20] ;m elements
-    shl ebx, 1        ;double word
-    sub ecx, ebx      ;ecx points to the array
-    mov [ebp-32], ecx ;save the pointer in the stack
-
-;------------------------------------------------------
+    ;------------------------------------------------------
 
     ;Searching --------------------------------------------
     ;while (j <= n - m && !result)

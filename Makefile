@@ -3,7 +3,7 @@ prgrep: prgrep.o
 
 bm: BoyerMoore.java
 	javac $<
-	java BoyerMoore "jhjhjahshelllskHellolosjsme" "Hello"
+	java BoyerMoore "jhjhjahshelllskhellolosjsme" "hello"
 
 test: test.c
 	gcc -g -m32 -o test test.c
@@ -13,7 +13,7 @@ hello: helloworld.o
 	./hello
 
 read: fileRead.o
-	./read hello.txt
+	./fileRead hello.txt
 
 %.o:
 	nasm -f elf -F dwarf -g $*.asm
