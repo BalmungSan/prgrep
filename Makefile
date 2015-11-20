@@ -9,11 +9,8 @@ test: test.c
 	gcc -g -m32 -o test test.c
 	objdump -d --disassembler-options=intel test &> test.asm	
 
-hello: helloworld.o
-	./hello
-
-read: fileRead.o
-	./fileRead hello.txt
+main: main.o
+	./main
 
 %.o:
 	nasm -f elf -F dwarf -g $*.asm
@@ -21,8 +18,7 @@ read: fileRead.o
 
 clean: 
 	rm -f prgrep
-	rm -f hello
-	rm -f fileRead
+	rm -f main
 	rm -f test
 	rm -rf *.o
 	rm -rf *.class
