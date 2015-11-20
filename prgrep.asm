@@ -1,37 +1,80 @@
 section .data
-  ;found message
-  msg: db "Found pattern in file ",10,0
-  msgsize: equ $-msg
+whitespace: db " ",0 
+newline: db "",10,0
 
 section .bbs
 
 section .text
-  ;fet the length of a string in ecx to edx -------------------------
+  ;get the length of a string in ecx to edx --------------------------
   getlen:
-    xor edx, edx ;edx = 0 -> length = 0 
+    xor edx, edx             ;edx = 0 -> length = 0 
     getlenloop:              ;for every char in the string
       cmp byte[ecx + edx], 0 ;if the char is the null ...
       jz gotlen              ;... we have the length
       inc edx                ;... if not, length++ 
       jmp getlenloop         ;loop for the next char
-    gotlen: ;now ecx -> string, edx = lengt
-    ret ;return
-  ;------------------------------------------------------------------ 
+    gotlen:                  ;now ecx -> string, edx = lengt
+    ret                      ;return
+  ;-------------------------------------------------------------------
  
-  ;bool search (String text, String pattern) ------------------------
+  ;void print (...) --------------------------------------------------
+  ;print a line with very string pushed separated by white spaces
+    ;create the stack frame
+    push ebp
+    mov ebp, esp
+  
+    pop ecx ;pop a zero from the stack
+    
+    ;loop for every arg
+    loopprint:
+      pop ecx       ;get the next string
+      test ecx, ecx ;if ecx == 0 ...
+      je endline    ;... exit loop
+    
+      ;print the string
+      call getlen
+      mov eax, 4
+      mov ebx, 1
+      int80h
+
+      ;print a white space
+      mov eax, 4
+      mov ebx, 1
+      mov ecx, whitespace     
+      mov edi, 1
+      int 80h
+
+      ;loop
+      jmp loopprint 
+
+    ;print a new line
+    endline:
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, newline
+    mov edx, 1
+    int 80h
+
+    ;return
+    ret
+  ;-------------------------------------------------------------------
+
+  ;int search ([ebp+8] String text, [ebp+12] String pattern) ---------
   ;Boyer Moore string matching algorithm
+  ;return the position where is found the pattern in text, or -1 if not found
   global search
   search: 
-    ;prepare variables ------------------------------------
     ;create the stack frame
     push ebp
     mov ebp, esp
 
+    ;local variables ---------------------------------------
     ;create local variables by reserving space on the stack
-    sub esp, 0x24 ;reserve space of 36 bytes -> 6 int and 3 int*
+    sub esp, 0x20 ;reserve space of 32 bytes -> 7 int and 1 int*
 
-    ;here we have these variables
-    ;[ebp-4] = boolean result = false (0)
+    ;[ebp-4] = int result = -1
+    mov dword [ebp-4], -1
+
     ;[ebp-8] = int i = 0
     ;[ebp-12] = int j = 0
 
@@ -44,77 +87,93 @@ section .text
     mov ecx, [ebp+12]       ;get pattern from the stack
     call getlen             ;get the length of the string
     mov dword [ebp-20], edx ;edx = pattern.length 
-    ;------------------------------------------------------
 
-    ;Precompute -------------------------------------------
-    ;[edp-24] = int[] bmbc = new int[256]
+    ;[ebp-24] = int last = m - 1
+    mov ecx, [ebp-20] ;ecx = m
+    dec ecx           ;ecx--
+    mov [ebp-24], ecx ;last = ecx
+
+    ;[ebp-28] = int end = n - m
+    mov ecx, [ebp-16] ;ecx = n
+    sub ecx, [ebp-20] ;ecx = ecx - m
+    mov [ebp-28], ecx ;end = ecx
+
+    ;[ebp-32] = int[] bmbc = new int[256]
     mov ebx, 256      ;256 elements
     shl ebx, 1        ;double word
     sub ecx, ebx      ;ecx points to the array
-    mov [ebp-24], ecx ;save the pointer in the stack
+    mov [ebp-32], ecx ;save the pointer in the stack
+    ;-------------------------------------------------------
 
+    ;Precompute --------------------------------------------
     ;Arrays.fill(bmbc, m)
-    mov edi, [ebp-24] ;put in edi the pointer to bmbc
-    xor ecx, ecx     ;clear the iterator -> ecx = 0
+    mov edi, [ebp-32]        ;put in edi the pointer to bmbc
+    xor ecx, ecx             ;clear the iterator -> ecx = 0
     loopbmbcfill:
-      mov eax, [ebp-20]
-      mov [edi + ecx*2], eax ;bmbc[ecx] = m
-      inc ecx                       ;ecx++
-      cmp ecx, 256                  ;if ecx != 256 ...
-      jne loopbmbcfill              ;... continue loop
+      mov eax, [ebp-20]      ;eax = m
+      mov [edi + ecx*2], eax ;bmbc[ecx] = eax
+      inc ecx                ;ecx++
+      cmp ecx, 256           ;if ecx != 256 ...
+      jne loopbmbcfill       ;... continue loop
 
-    ;for(int i = 0; i < m - 1; i++) bmbc[text[i]] = m-i-1;
-    mov esi, [ebp+12]  ;put in esi the pointer to text
-    xor ecx, ecx       ;clear the iterator -> ecx = 0
-    mov eax, [ebp-20]  ;eax = m
-    dec eax            ;eax = m -1
-    mov [ebp-36], eax  ;[ebp-36] = int aux = m -1
+    ;for(int i = 0; i < last; i++) bmbc[text[i]] = last-i;
+    mov eax, [ebp+12] ;put in eax the pointer to text
+    xor edx, edx      ;clear the iterator -> edx = 0
     forbmbc:
-      ;eax = text[ecx]
-      mov eax, [esi + ecx]      
+      ;ebx = text[edx]
+      mov ebx, [eax + edx]      
 
-      ;ebx = m-i-1
-      mov ebx, [ebp-36] ;ebx = m - 1
-      sub ebx, ecx      ;ebx = ebx - i
+      ;ecx = last - i
+      mov ecx, [ebp-24] ;ebx = last
+      sub ebx, ecx      ;ebx = ebx - 
 
       ;bmbc[eax] = ebx
       mov [edi + eax*2], ebx      
 
       inc ecx           ;ecx++
-      cmp ecx, [ebp-36] ;if ecx == m - 1 ...
+      cmp ecx, [ebp-24] ;if ecx != last...
       jne loopbmbcfill  ;... continue loop
-    ;------------------------------------------------------
+    ;-------------------------------------------------------
 
-    ;Searching --------------------------------------------
-    ;while (j <= n - m && !result)
+    ;Searching ---------------------------------------------
+    ;while (j <= end)
     whilesearching:
-      ;for (i = m - 1; i >= 0 && text[i] == pattern[i+j]; i--);
+    ;Condition
+    mov eax, [ebp-12]      ;eax = j
+    mov ebx, [ebp-28]      ;ebx = end
+    cmp [ebp-12], [ebp-28] ;if eax == ebx ...
+    je endwhilesearching   ;... end while
+
+      ;for (i = last; text[i] == pattern[i+j]; i--);
+      ;i = last
+      mov [ebp-8], [ebp-36]
       forsearching:
+      ;condition
+      ;eax = text[i]
+      ;mov   
+      ;mov ebx, [];ebx = pattern[i+j]
+      ;cmp eax, ebx        ;if eax != ebx ...
+      ;jne endforsearching ;... break loop
+
+        ;if (i == 0) return j
+        cmp [ebp-8], 0  ;if i == 0 ...
+        
       endforsearching:      
 
-      mov eax,[ebp-8]   ;eax = i
-      cmp eax, 0        ;Compare with zero
-      jae elsesearching ;Jump if above or equal
-      ;if (i < 0) ... 
-        ;.. result = true (1)      
-        mov dword [ebp-4], 1
-        jmp endwhilesearching ;break while loop
-      ;else ...
-      elsesearching:
-        ;... j += max(bmgs[i], bmbc[pattern[i+j]] - m+i+1)
-        jmp whilesearching ;continue the while
-    
+      ;j += bmbc[pattern[j+last]]
+      jmp whilesearching ;continue the while
+
     endwhilesearching:
-    ;------------------------------------------------------
+    ;-------------------------------------------------------
 
     ;return result
     mov eax, dword [ebp-4]
     leave
     ret 
-  ;------------------------------------------------------------------
+  ;-------------------------------------------------------------------
 
-  ;void toLowerCase (char* string) ----------------------------------
-  ;Take a string to lower case
+  ;void toLowerCase ([ebp+8] char* string) ---------------------------
+  ;take a string to lower case
   global toLowerCase
   toLowerCase:
     ;Create the stack frame
@@ -125,9 +184,9 @@ section .text
 
     ;return
     ret
-  ;------------------------------------------------------------------ 
+  ;------------------------------------------------------------------- 
 
-  ;int main (int argc, char** argv) --------------------------------- 
+  ;int main (int argc, char** argv) ---------------------------------- 
   ;Program entry point
   global _start
   _start: 
@@ -142,18 +201,8 @@ section .text
     ;Call the search function
     call search ;search(argv[1], argv[2])
 
-    ;Check the result value of search
-    add esp,0x10 ;Get the retrun value in eax
-    test eax,eax ;if eax == 0 ...
-    je exit      ;.. exit 
-    mov eax,4    ;.. if not print a message
-    mov ebx,1    
-    mov ecx,msg
-    mov edx,msgsize
-    int 80h
-
   exit:
     mov eax, 0x1  ;Syscall 1 (exit)
     mov ebx, 0x0  ;Exit code 0 (No errors)
     int 80h       ;Call system
-  ;------------------------------------------------------------------
+  ;-------------------------------------------------------------------
