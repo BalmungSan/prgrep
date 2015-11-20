@@ -22,7 +22,7 @@ read: fileRead.o
 clean: 
 	rm -f prgrep
 	rm -f hello
-	rm -f read
+	rm -f fileRead
 	rm -f test
 	rm -rf *.o
 	rm -rf *.class
