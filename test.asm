@@ -45,11 +45,11 @@ Desensamblado de la sección .text:
  80482f8:	50                   	push   eax
  80482f9:	54                   	push   esp
  80482fa:	52                   	push   edx
- 80482fb:	68 d0 84 04 08       	push   0x80484d0
- 8048300:	68 70 84 04 08       	push   0x8048470
+ 80482fb:	68 90 84 04 08       	push   0x8048490
+ 8048300:	68 30 84 04 08       	push   0x8048430
  8048305:	51                   	push   ecx
  8048306:	56                   	push   esi
- 8048307:	68 3b 84 04 08       	push   0x804843b
+ 8048307:	68 03 84 04 08       	push   0x8048403
  804830c:	e8 cf ff ff ff       	call   80482e0 <__libc_start_main@plt>
  8048311:	f4                   	hlt    
  8048312:	66 90                	xchg   ax,ax
@@ -147,103 +147,80 @@ Desensamblado de la sección .text:
 080483eb <test>:
  80483eb:	55                   	push   ebp
  80483ec:	89 e5                	mov    ebp,esp
- 80483ee:	53                   	push   ebx
- 80483ef:	83 ec 14             	sub    esp,0x14
- 80483f2:	89 e0                	mov    eax,esp
- 80483f4:	89 c1                	mov    ecx,eax
- 80483f6:	8b 45 08             	mov    eax,DWORD PTR [ebp+0x8]
- 80483f9:	8d 50 ff             	lea    edx,[eax-0x1]
- 80483fc:	89 55 f4             	mov    DWORD PTR [ebp-0xc],edx
- 80483ff:	c1 e0 02             	shl    eax,0x2
- 8048402:	8d 50 03             	lea    edx,[eax+0x3]
- 8048405:	b8 10 00 00 00       	mov    eax,0x10
- 804840a:	83 e8 01             	sub    eax,0x1
- 804840d:	01 d0                	add    eax,edx
- 804840f:	bb 10 00 00 00       	mov    ebx,0x10
- 8048414:	ba 00 00 00 00       	mov    edx,0x0
- 8048419:	f7 f3                	div    ebx
- 804841b:	6b c0 10             	imul   eax,eax,0x10
- 804841e:	29 c4                	sub    esp,eax
- 8048420:	89 e0                	mov    eax,esp
- 8048422:	83 c0 03             	add    eax,0x3
- 8048425:	c1 e8 02             	shr    eax,0x2
- 8048428:	c1 e0 02             	shl    eax,0x2
- 804842b:	89 45 f0             	mov    DWORD PTR [ebp-0x10],eax
- 804842e:	8b 45 f0             	mov    eax,DWORD PTR [ebp-0x10]
- 8048431:	8b 40 08             	mov    eax,DWORD PTR [eax+0x8]
- 8048434:	89 cc                	mov    esp,ecx
- 8048436:	8b 5d fc             	mov    ebx,DWORD PTR [ebp-0x4]
- 8048439:	c9                   	leave  
- 804843a:	c3                   	ret    
+ 80483ee:	83 ec 10             	sub    esp,0x10
+ 80483f1:	c7 45 fc ff ff ff ff 	mov    DWORD PTR [ebp-0x4],0xffffffff
+ 80483f8:	8b 45 08             	mov    eax,DWORD PTR [ebp+0x8]
+ 80483fb:	89 45 f8             	mov    DWORD PTR [ebp-0x8],eax
+ 80483fe:	8b 45 fc             	mov    eax,DWORD PTR [ebp-0x4]
+ 8048401:	c9                   	leave  
+ 8048402:	c3                   	ret    
 
-0804843b <main>:
- 804843b:	8d 4c 24 04          	lea    ecx,[esp+0x4]
- 804843f:	83 e4 f0             	and    esp,0xfffffff0
- 8048442:	ff 71 fc             	push   DWORD PTR [ecx-0x4]
- 8048445:	55                   	push   ebp
- 8048446:	89 e5                	mov    ebp,esp
- 8048448:	51                   	push   ecx
- 8048449:	83 ec 04             	sub    esp,0x4
- 804844c:	83 ec 0c             	sub    esp,0xc
- 804844f:	6a 05                	push   0x5
- 8048451:	e8 95 ff ff ff       	call   80483eb <test>
- 8048456:	83 c4 10             	add    esp,0x10
- 8048459:	b8 00 00 00 00       	mov    eax,0x0
- 804845e:	8b 4d fc             	mov    ecx,DWORD PTR [ebp-0x4]
- 8048461:	c9                   	leave  
- 8048462:	8d 61 fc             	lea    esp,[ecx-0x4]
- 8048465:	c3                   	ret    
- 8048466:	66 90                	xchg   ax,ax
- 8048468:	66 90                	xchg   ax,ax
- 804846a:	66 90                	xchg   ax,ax
- 804846c:	66 90                	xchg   ax,ax
- 804846e:	66 90                	xchg   ax,ax
+08048403 <main>:
+ 8048403:	55                   	push   ebp
+ 8048404:	89 e5                	mov    ebp,esp
+ 8048406:	83 ec 10             	sub    esp,0x10
+ 8048409:	8b 45 0c             	mov    eax,DWORD PTR [ebp+0xc]
+ 804840c:	83 c0 08             	add    eax,0x8
+ 804840f:	8b 10                	mov    edx,DWORD PTR [eax]
+ 8048411:	8b 45 0c             	mov    eax,DWORD PTR [ebp+0xc]
+ 8048414:	83 c0 04             	add    eax,0x4
+ 8048417:	8b 00                	mov    eax,DWORD PTR [eax]
+ 8048419:	52                   	push   edx
+ 804841a:	50                   	push   eax
+ 804841b:	e8 cb ff ff ff       	call   80483eb <test>
+ 8048420:	83 c4 08             	add    esp,0x8
+ 8048423:	89 45 fc             	mov    DWORD PTR [ebp-0x4],eax
+ 8048426:	b8 00 00 00 00       	mov    eax,0x0
+ 804842b:	c9                   	leave  
+ 804842c:	c3                   	ret    
+ 804842d:	66 90                	xchg   ax,ax
+ 804842f:	90                   	nop
 
-08048470 <__libc_csu_init>:
- 8048470:	55                   	push   ebp
- 8048471:	57                   	push   edi
- 8048472:	31 ff                	xor    edi,edi
- 8048474:	56                   	push   esi
- 8048475:	53                   	push   ebx
- 8048476:	e8 a5 fe ff ff       	call   8048320 <__x86.get_pc_thunk.bx>
- 804847b:	81 c3 85 1b 00 00    	add    ebx,0x1b85
- 8048481:	83 ec 0c             	sub    esp,0xc
- 8048484:	8b 6c 24 20          	mov    ebp,DWORD PTR [esp+0x20]
- 8048488:	8d b3 0c ff ff ff    	lea    esi,[ebx-0xf4]
- 804848e:	e8 01 fe ff ff       	call   8048294 <_init>
- 8048493:	8d 83 08 ff ff ff    	lea    eax,[ebx-0xf8]
- 8048499:	29 c6                	sub    esi,eax
- 804849b:	c1 fe 02             	sar    esi,0x2
- 804849e:	85 f6                	test   esi,esi
- 80484a0:	74 23                	je     80484c5 <__libc_csu_init+0x55>
- 80484a2:	8d b6 00 00 00 00    	lea    esi,[esi+0x0]
- 80484a8:	83 ec 04             	sub    esp,0x4
- 80484ab:	ff 74 24 2c          	push   DWORD PTR [esp+0x2c]
- 80484af:	ff 74 24 2c          	push   DWORD PTR [esp+0x2c]
- 80484b3:	55                   	push   ebp
- 80484b4:	ff 94 bb 08 ff ff ff 	call   DWORD PTR [ebx+edi*4-0xf8]
- 80484bb:	83 c7 01             	add    edi,0x1
- 80484be:	83 c4 10             	add    esp,0x10
- 80484c1:	39 f7                	cmp    edi,esi
- 80484c3:	75 e3                	jne    80484a8 <__libc_csu_init+0x38>
- 80484c5:	83 c4 0c             	add    esp,0xc
- 80484c8:	5b                   	pop    ebx
- 80484c9:	5e                   	pop    esi
- 80484ca:	5f                   	pop    edi
- 80484cb:	5d                   	pop    ebp
- 80484cc:	c3                   	ret    
- 80484cd:	8d 76 00             	lea    esi,[esi+0x0]
+08048430 <__libc_csu_init>:
+ 8048430:	55                   	push   ebp
+ 8048431:	57                   	push   edi
+ 8048432:	31 ff                	xor    edi,edi
+ 8048434:	56                   	push   esi
+ 8048435:	53                   	push   ebx
+ 8048436:	e8 e5 fe ff ff       	call   8048320 <__x86.get_pc_thunk.bx>
+ 804843b:	81 c3 c5 1b 00 00    	add    ebx,0x1bc5
+ 8048441:	83 ec 0c             	sub    esp,0xc
+ 8048444:	8b 6c 24 20          	mov    ebp,DWORD PTR [esp+0x20]
+ 8048448:	8d b3 0c ff ff ff    	lea    esi,[ebx-0xf4]
+ 804844e:	e8 41 fe ff ff       	call   8048294 <_init>
+ 8048453:	8d 83 08 ff ff ff    	lea    eax,[ebx-0xf8]
+ 8048459:	29 c6                	sub    esi,eax
+ 804845b:	c1 fe 02             	sar    esi,0x2
+ 804845e:	85 f6                	test   esi,esi
+ 8048460:	74 23                	je     8048485 <__libc_csu_init+0x55>
+ 8048462:	8d b6 00 00 00 00    	lea    esi,[esi+0x0]
+ 8048468:	83 ec 04             	sub    esp,0x4
+ 804846b:	ff 74 24 2c          	push   DWORD PTR [esp+0x2c]
+ 804846f:	ff 74 24 2c          	push   DWORD PTR [esp+0x2c]
+ 8048473:	55                   	push   ebp
+ 8048474:	ff 94 bb 08 ff ff ff 	call   DWORD PTR [ebx+edi*4-0xf8]
+ 804847b:	83 c7 01             	add    edi,0x1
+ 804847e:	83 c4 10             	add    esp,0x10
+ 8048481:	39 f7                	cmp    edi,esi
+ 8048483:	75 e3                	jne    8048468 <__libc_csu_init+0x38>
+ 8048485:	83 c4 0c             	add    esp,0xc
+ 8048488:	5b                   	pop    ebx
+ 8048489:	5e                   	pop    esi
+ 804848a:	5f                   	pop    edi
+ 804848b:	5d                   	pop    ebp
+ 804848c:	c3                   	ret    
+ 804848d:	8d 76 00             	lea    esi,[esi+0x0]
 
-080484d0 <__libc_csu_fini>:
- 80484d0:	f3 c3                	repz ret 
+08048490 <__libc_csu_fini>:
+ 8048490:	f3 c3                	repz ret 
 
 Desensamblado de la sección .fini:
 
-080484d4 <_fini>:
- 80484d4:	53                   	push   ebx
- 80484d5:	83 ec 08             	sub    esp,0x8
- 80484d8:	e8 43 fe ff ff       	call   8048320 <__x86.get_pc_thunk.bx>
- 80484dd:	81 c3 23 1b 00 00    	add    ebx,0x1b23
- 80484e3:	83 c4 08             	add    esp,0x8
- 80484e6:	5b                   	pop    ebx
- 80484e7:	c3                   	ret    
+08048494 <_fini>:
+ 8048494:	53                   	push   ebx
+ 8048495:	83 ec 08             	sub    esp,0x8
+ 8048498:	e8 83 fe ff ff       	call   8048320 <__x86.get_pc_thunk.bx>
+ 804849d:	81 c3 63 1b 00 00    	add    ebx,0x1b63
+ 80484a3:	83 c4 08             	add    esp,0x8
+ 80484a6:	5b                   	pop    ebx
+ 80484a7:	c3                   	ret    

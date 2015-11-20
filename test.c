@@ -1,12 +1,14 @@
 #include <stdio.h>
 
-int test (int s) {
-   int array [s];
+int test (char* text, char* pattern) {
+   int result = -1;
 
-   return array[2];
+   char* test = text;
+
+   return result;
 }
 
 int main (int argc, char** argv) {
-   test(5); 
+   int r = test(argv[1], argv[2]); 
    return 0;
 }

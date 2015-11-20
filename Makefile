@@ -1,5 +1,5 @@
 prgrep: prgrep.o
-	#./prgrep "Hello" "He"
+	./prgrep "Hello" "He"
 
 bm: BoyerMoore.java
 	javac $<

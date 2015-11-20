@@ -1,6 +1,6 @@
 section .data
-whitespace: db " ",0 
-newline: db "",10,0
+  ;bmbc = new int [256] (ascii table)
+  bmbc times 256 dd 0 ;create an arry 4bytes -> doble word
 
 section .bbs
 
@@ -17,46 +17,6 @@ section .text
     ret                      ;return
   ;-------------------------------------------------------------------
  
-  ;void print (...) --------------------------------------------------
-  ;print a line with very string pushed separated by white spaces
-    ;create the stack frame
-    push ebp
-    mov ebp, esp
-  
-    pop ecx ;pop a zero from the stack
-    
-    ;loop for every arg
-    loopprint:
-      pop ecx       ;get the next string
-      test ecx, ecx ;if ecx == 0 ...
-      je endline    ;... exit loop
-    
-      ;print the string
-      call getlen
-      mov eax, 4
-      mov ebx, 1
-      int80h
-
-      ;print a white space
-      mov eax, 4
-      mov ebx, 1
-      mov ecx, whitespace     
-      mov edi, 1
-      int 80h
-
-      ;loop
-      jmp loopprint 
-
-    ;print a new line
-    endline:
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, newline
-    mov edx, 1
-    int 80h
-
-    ;return
-    ret
   ;-------------------------------------------------------------------
 
   ;int search ([ebp+8] String text, [ebp+12] String pattern) ---------
@@ -70,21 +30,21 @@ section .text
 
     ;local variables ---------------------------------------
     ;create local variables by reserving space on the stack
-    sub esp, 0x20 ;reserve space of 32 bytes -> 7 int and 1 int*
+    sub esp, 0x1c ;reserve space of 28 bytes -> 7 int and
 
     ;[ebp-4] = int result = -1
     mov dword [ebp-4], -1
 
     ;[ebp-8] = int i = 0
     ;[ebp-12] = int j = 0
-
+ 
     ;[ebp-16] = int n = text.length
-    mov ecx, [ebp+8]        ;get text from the stack
+    mov ecx, dword [ebp+8]  ;get text from the stack
     call getlen             ;get the length of the string
     mov dword [ebp-16], edx ;edx = text.length
 
     ;[ebp-20] = int m = text.length
-    mov ecx, [ebp+12]       ;get pattern from the stack
+    mov ecx, dword [ebp+12] ;get pattern from the stack
     call getlen             ;get the length of the string
     mov dword [ebp-20], edx ;edx = pattern.length 
 
@@ -97,42 +57,36 @@ section .text
     mov ecx, [ebp-16] ;ecx = n
     sub ecx, [ebp-20] ;ecx = ecx - m
     mov [ebp-28], ecx ;end = ecx
-
-    ;[ebp-32] = int[] bmbc = new int[256]
-    mov ebx, 256      ;256 elements
-    shl ebx, 1        ;double word
-    sub ecx, ebx      ;ecx points to the array
-    mov [ebp-32], ecx ;save the pointer in the stack
     ;-------------------------------------------------------
 
     ;Precompute --------------------------------------------
-    ;Arrays.fill(bmbc, m)
-    mov edi, [ebp-32]        ;put in edi the pointer to bmbc
+    ;for(i = 0; i < 256; i++) bmbc[i] = m
     xor ecx, ecx             ;clear the iterator -> ecx = 0
+    lea edi, [bmbc]          ;edi = *bmbc
     loopbmbcfill:
       mov eax, [ebp-20]      ;eax = m
-      mov [edi + ecx*2], eax ;bmbc[ecx] = eax
+      mov [edi + ecx*4], eax ;*(edi + ecx*4) = eax
       inc ecx                ;ecx++
       cmp ecx, 256           ;if ecx != 256 ...
       jne loopbmbcfill       ;... continue loop
 
     ;for(int i = 0; i < last; i++) bmbc[text[i]] = last-i;
-    mov eax, [ebp+12] ;put in eax the pointer to text
-    xor edx, edx      ;clear the iterator -> edx = 0
+    mov eax, dword [ebp+12] ;put in eax the pointer to text
+    xor edx, edx            ;clear the iterator -> edx = 0
     forbmbc:
       ;ebx = text[edx]
-      mov ebx, [eax + edx]      
+      movzx ebx, byte [eax + edx]      
 
       ;ecx = last - i
-      mov ecx, [ebp-24] ;ebx = last
-      sub ebx, ecx      ;ebx = ebx - 
+      mov ecx, [ebp-24] ;ecx = last
+      sub ecx, edx      ;ecx = ecx - edx
 
-      ;bmbc[eax] = ebx
-      mov [edi + eax*2], ebx      
+      ;bmbc[ebx] = ecx
+      mov [edi + ebx*4], ecx      
 
-      inc ecx           ;ecx++
-      cmp ecx, [ebp-24] ;if ecx != last...
-      jne loopbmbcfill  ;... continue loop
+      inc edx           ;edx++
+      cmp edx, [ebp-24] ;if edx != last...
+      jne forbmbc       ;... continue loop
     ;-------------------------------------------------------
 
     ;Searching ---------------------------------------------
@@ -141,12 +95,12 @@ section .text
     ;Condition
     mov eax, [ebp-12]      ;eax = j
     mov ebx, [ebp-28]      ;ebx = end
-    cmp [ebp-12], [ebp-28] ;if eax == ebx ...
+    ;cmp [ebp-12], [ebp-28] ;if eax == ebx ...
     je endwhilesearching   ;... end while
 
       ;for (i = last; text[i] == pattern[i+j]; i--);
       ;i = last
-      mov [ebp-8], [ebp-36]
+      ;mov [ebp-8], [ebp-36]
       forsearching:
       ;condition
       ;eax = text[i]
@@ -156,7 +110,7 @@ section .text
       ;jne endforsearching ;... break loop
 
         ;if (i == 0) return j
-        cmp [ebp-8], 0  ;if i == 0 ...
+        cmp dword [ebp-8], 0  ;if i == 0 ...
         
       endforsearching:      
 
@@ -194,8 +148,8 @@ section .text
     push ebp
     mov ebp, esp    
 
+    pop ecx ;pop a zero
     pop ecx ;Get the number of arguments (argc)
-
     pop ecx ;Get the program name (argv[0])
 
     ;Call the search function
