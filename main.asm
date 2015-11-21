@@ -1,6 +1,7 @@
 ;-----------------------------------------------
 ; Include auxiliary functions coded in other file
 %include        'functions.asm'
+%include        'prgrep.asm'
 
 SECTION .bss
 ;-----------------------------------------------
@@ -18,6 +19,10 @@ SECTION .data
 ; Messages variables
 no_arguments_msg:               db      'Nothing to do', 0h
 syntax_error_msg:   db      'syntax_error', 0h
+found dd "Found",10,0
+not_found dd "Not Found",10,0
+separator dd " -> ",0
+lenseparator equ $-separator
 ;-----------------------------------------------
 ; Auxiliar variables
 cero: db '0',0h
@@ -135,14 +140,14 @@ next_e:
 ; pattern function takes the pattern argument from the stack
 pattern:
     pop eax             ; eax = third argument    
-    mov dword[pattern_b], eax       ; pattern_b = eax = pattern argument
+    mov dword[pattern_b],eax        ; pattern_b = eax = pattern argument
     
     mov eax, dword[flag_i_b]        ; eax = flag_i_b
     cmp byte[eax], "1"              ; if eax == 1
     jne nextFile                    ; if not equals go to nextFile tag
 
-    ;-----------------------------------------------
-    ;lower case case function
+    ;---------------------------------------------
+    ;lower case function
     mov ebx, dword[pattern_b]       ; ebx = pattern_b
     call to_lower_case              ; we call the to_lower_case function (functions.asm)
     mov dword[pattern_b], ebx       ; pattern_b = ebx (return of the function)
@@ -151,9 +156,25 @@ pattern:
 ; nextFile function takes the files arguments from the stack
 nextFile:
     pop     eax             ; eax = next argument  
-    cmp     eax, 0          ; if eax == 0 (check to see if we have any arguments left)
-    je      no_more_args      ; if eaquals goto no_more_args tag(jumping over the end of the loop)
+    cmp     eax,0           ; if eax == 0 (check to see if we have any arguments left)
+    je      no_more_args    ; if eaquals goto no_more_args tag(jumping over the end of the loop)
+    push eax                ; save the file name
+
     mov dword[buffer],0
+
+    ;print the file name and ' -> '
+    mov ecx, eax
+    call getlen
+    mov eax, 4
+    mov ebx, 1
+    int 80h
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, separator
+    mov edx, lenseparator
+    int 80h
+ 
+    pop eax                 ; get back the file name
 
     mov ebx, eax            ; ebx = eax (file name)  
     mov eax, 5              ; eax = 5 (sys_open)
@@ -165,11 +186,6 @@ nextFile:
     mov ecx, buffer         ; ecx = buffer
     mov edx, len            ; edx = len (buffer len)
     int 80h                 ; system interruption
-
-;imprime el valor (para pruebas borrar esto)
-    mov ecx, buffer         
-    mov eax, ecx
-    call    print_line         
 ;----------------------------------------
 
     mov eax, 6              ; eax = 6 (sys_close_file)
@@ -177,7 +193,7 @@ nextFile:
 
     mov eax, dword[flag_i_b]    ; eax = flag_i_b
     cmp byte[eax], "1"          ; if eax == 1
-    jne nextFile                ; if equals goto nextFile tag else goto lowercase function
+    jne search                  ; if equals goto search tag else goto lowercase function
 
     ;-----------------------------------------------
     ;lower case case function
@@ -186,18 +202,33 @@ nextFile:
     call to_lower_case          ; we call the to_lower_case function (functions.asm) 
 
     ;-----------------------------------------------
-    ; en esta parte es donde se debe mandar todo a la función
-    ; las variales necesarias son buffer -> contenido del archivo y pattern_b -> contenido del patron
+    search:
+    ;call the search function with the buffer and the pattern
+    push dword[pattern_b]    ;push second argument first
+    push buffer       ;push first argument last
+    call broyer_moore ;call the function
 
+    ;return vale -> eax = searach(argv[1],[argv[2])
+    cmp eax, -1        ;check if return -1 ...
+    jne printfound     ;... if not, print found
+    mov eax, not_found ;... if true print not_found
+    call print_line
+    jmp endwhile
+    
+    printfound:        
+    mov eax, found
+    call print_line
     ;-----------------------------------------------
 
+    endwhile:
+    pop eax                     ; pop the text
+    pop eax                     ; pop the pattern
     jmp     nextFile            ; goto nextFile tag (end of while)
 
 ;----------------------------------------
 ; syntax_error function 
 syntax_error:
     mov eax, syntax_error_msg   ; eax = syntax_error_msg 
-    push eax                    ; push eax onto the stack (function arguments)
     call print_line             ; we call the print_line function (functions.asm) 
     call exit                   ; we call the exit function (functions.asm) 
 
@@ -211,18 +242,4 @@ no_arguments:
 ;----------------------------------------
 ; no_more_args function
 no_more_args:
-    ;--------------------------------------
-    ; imprime valores, prueba, borrar al final
-    mov eax, dword[flag_i_b]
-    call    print_line
-    mov eax, dword[flag_e_b]
-    call    print_line
-    mov eax, dword[pattern_b]
-    call    print_line
-    mov ecx, buffer 
-    mov eax, ecx
-    call    print_line 
-    ;----------------------------------------------  
-
-
     call    exit                ; we call the exit function (functions.asm) 

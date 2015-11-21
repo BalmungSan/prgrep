@@ -1,41 +1,28 @@
+; Include auxiliary functions coded in other file
+%include 'functions.asm'
+
 section .data
   ;bmbc = new int [256] (ascii table)
-  bmbc times 256 dd 0 ;create an arry 4bytes -> doble word
+  bmbc: times 256 dd 0 ;create an arry 4bytes -> doble word
+  
+  ;arr= new int [4] arr array to fill bmbc in parallel
+  arr: times 4 dd 0;
 
-msg1 dd "Found",10,0
-len1 equ $-msg1
-msg2 dd "Not Found",10,0
-len2 equ $-msg2
-
-section .bbs
+section .bss
 
 section .text
-  ;get the length of a string in ecx to edx --------------------------
-  getlen:
-    xor edx, edx             ;edx = 0 -> length = 0 
-    getlenloop:              ;for every char in the string
-      cmp byte[ecx + edx], 0 ;if the char is the null ...
-      jz gotlen              ;... we have the length
-      inc edx                ;... if not, length++ 
-      jmp getlenloop         ;loop for the next char
-    gotlen:                  ;now ecx -> string, edx = lengt
-    ret                      ;return
-  ;-------------------------------------------------------------------
- 
-  ;-------------------------------------------------------------------
-
-  ;int search ([ebp+8] String text, [ebp+12] String pattern) ---------
+  ;int  broyer_moore ([ebp+8] String text, [ebp+12] String pattern) ---------
   ;Boyer Moore string matching algorithm
   ;return the position where is found the pattern in text, or -1 if not found
-  global search
-  search: 
+  global broyer_moore
+  broyer_moore: 
     ;create the stack frame
     push ebp
     mov ebp, esp
 
     ;local variables ---------------------------------------
     ;create local variables by reserving space on the stack
-    sub esp, 0x14 ;reserve space of 20 bytes -> 5 int
+    sub esp, 0x14 ;reserve space of 36 bytes -> 5 int
 
     ;[ebp-4] = int result = -1
     mov dword [ebp-4], -1
@@ -43,7 +30,7 @@ section .text
     ;[ebp-8] = int n = text.length
     mov ecx, dword [ebp+8]  ;get text from the stack
     call getlen             ;get the length of the string
-    mov dword [ebp-8], edx ;edx = text.length
+    mov dword [ebp-8], edx  ;edx = text.length
 
     ;[ebp-12] = int m = pattern.length
     mov ecx, dword [ebp+12] ;get pattern from the stack
@@ -63,13 +50,84 @@ section .text
 
     ;Precompute --------------------------------------------
     ;for(i = 0; i < 256; i++) bmbc[i] = m
-    xor ecx, ecx             ;clear the iterator -> ecx = 0
-    lea edi, [bmbc]          ;edi = *bmbc
+    ;arr = {m, m, m, m}
+    xor ecx, ecx    ;clear the iterator -> ecx = 0
+    lea edi, [bmbc] ;edi = *bmbc
+
+    mov eax, [ebp-12] ;eax = m
+    lea esi, [arr]    ;esi = *arr
+    mov [esi], eax    ;arr[0] = m
+    mov [esi+4], eax  ;arr[1] = m
+    mov [esi+8], eax  ;arr[2] = m
+    mov [esi+12], eax ;arr[3] = m
+
+    ;fill bmbc in parallel using movups and the xmm registers
+    ;fill 32 (4 * 8) values per iteration
     loopbmbcfill:
-      mov eax, [ebp-12]      ;eax = m
-      mov [edi + ecx*4], eax ;*(edi + ecx*4) = eax
+      ;fill xmm with arr
+      movups xmm0, [arr] ;xmm0 = arr
+      movups xmm1, [arr] ;xmm1 = arr
+      movups xmm2, [arr] ;xmm2 = arr
+      movups xmm3, [arr] ;xmm3 = arr
+      movups xmm4, [arr] ;xmm4 = arr
+      movups xmm5, [arr] ;xmm5 = arr
+      movups xmm6, [arr] ;xmm6 = arr
+      movups xmm7, [arr] ;xmm7 = arr
+
+      ;eax = ecx * 8
+      mov eax, ecx ;eax = ecx
+      imul eax, 8  ;eax = eax * 8
+      mov edx, eax ;edx = eax
+
+      ;fill bmbc with xmm, 4 positios per mov
+      ;bmbc[eax -> eax+4] = xmm0
+      imul eax, 4 ;eax = eax * 4
+      movups [edi + eax*4], xmm0 
+
+      ;bmbc[eax+4 -> eax+8] = xmm1
+      inc edx      ;edx++
+      mov eax, edx ;eax = edx
+      imul eax, 4  ;eax = eax * 4
+      movups [edi + eax*4], xmm1
+
+      ;bmbc[eax+8 -> eax+12] = xmm2
+      inc edx      ;edx++
+      mov eax, edx ;eax = edx
+      imul eax, 4  ;eax = eax * 4
+      movups [edi + eax*4], xmm2
+
+      ;bmbc[eax+12 -> eax+16] = xmm3
+      inc edx      ;edx++
+      mov eax, edx ;eax = edx
+      imul eax, 4  ;eax = eax * 4
+      movups [edi + eax*4], xmm3
+
+      ;bmbc[eax+16 -> eax+20] = xmm4
+      inc edx      ;edx++
+      mov eax, edx ;eax = edx
+      imul eax, 4  ;eax = eax * 4
+      movups [edi + eax*4], xmm4
+
+      ;bmbc[eax+20 -> eax+24] = xmm5
+      inc edx      ;edx++
+      mov eax, edx ;eax = edx
+      imul eax, 4  ;eax = eax * 4
+      movups [edi + eax*4], xmm5
+
+      ;bmbc[eax+24 -> eax+28] = xmm6
+      inc edx      ;edx++
+      mov eax, edx ;eax = edx
+      imul eax, 4  ;eax = eax * 4
+      movups [edi + eax*4], xmm6
+
+      ;bmbc[eax+28 -> eax+32] = xmm7
+      inc edx      ;edx++
+      mov eax, edx ;eax = edx
+      imul eax, 4  ;eax = eax * 4
+      movups [edi + eax*4], xmm7
+
       inc ecx                ;ecx++
-      cmp ecx, 256           ;if ecx != 256 ...
+      cmp ecx, 8             ;if ecx != 8 ...
       jne loopbmbcfill       ;... continue loop
 
     ;for(int i = 0; i < last; i++) bmbc[pattern[i]] = last-i;
@@ -141,59 +199,9 @@ section .text
 
     ;return result
     mov eax, dword [ebp-4]
-    leave
+
+    ;destroy the stack frame
+    mov esp, ebp
+    pop ebp
     ret 
-  ;-------------------------------------------------------------------
-
-  ;void toLowerCase ([ebp+8] char* string) ---------------------------
-  ;take a string to lower case
-  global toLowerCase
-  toLowerCase:
-    ;Create the stack frame
-    push ebp
-    mov ebp, esp
-
-    ;for (; string != '\0'; string++) string->toLower();
-
-    ;return
-    ret
-  ;------------------------------------------------------------------- 
-
-  ;int main (int argc, char** argv) ---------------------------------- 
-  ;Program entry point
-  global _start
-  _start: 
-    ;Create the stack frame
-    push ebp
-    mov ebp, esp    
-
-    pop ecx ;pop a zero
-    pop ecx ;Get the number of arguments (argc)
-    pop ecx ;Get the program name (argv[0])
-
-    ;Call the search function
-    call search ;search(argv[1], argv[2])
-
-    ;return value
-    add esp, 0x10 ;eax = searach(argv[1],[argv[2])
-    cmp eax, -1   ;check if return -1
-    jne printfound
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, msg2   
-    mov edx, len2
-    int 80h
-    jmp exit    
-
-    printfound:
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, msg1   
-    mov edx, len1
-    int 80h
-
-  exit:
-    mov eax, 0x1  ;Syscall 1 (exit)
-    mov ebx, 0x0  ;Exit code 0 (No errors)
-    int 80h       ;Call system
   ;-------------------------------------------------------------------

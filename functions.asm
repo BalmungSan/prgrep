@@ -1,9 +1,24 @@
+%ifndef FUNCTIONS
+%define FUNCTIONS
+
 sys_exit    equ     1
 sys_read    equ     3
 sys_write   equ     4
 stdin       equ     0
 stdout      equ     1
 stderr      equ     3
+
+;get the length of a string in ecx to edx --------------------------
+getlen:
+  xor edx, edx             ;edx = 0 -> length = 0 
+  getlenloop:              ;for every char in the string
+    cmp byte[ecx + edx], 0 ;if the char is the null ...
+    jz gotlen              ;... we have the length
+    inc edx                ;... if not, length++ 
+    jmp getlenloop         ;loop for the next char
+  gotlen:                  ;now ecx -> string, edx = lengt
+  ret                      ;return
+;-------------------------------------------------------------------
 
 ;------------------------------------------
 ; int size(String message)
@@ -80,6 +95,17 @@ lower_case:
 done:
     ret
 
+
+;------------------------------------------
+; void to_regexp(String text)
+; String in regular expresion to normal string
+to_regexp:
+  inc ebx
+  mov ecx, ebx
+  call getlen
+  mov byte [ebx+edx-1], 0
+
+
 ;------------------------------------------
 ; Exit the program
 exit:
@@ -87,3 +113,5 @@ exit:
     mov     eax, sys_exit
     int     80h
     ret
+
+%endif
